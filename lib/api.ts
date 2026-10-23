@@ -215,6 +215,14 @@ export const api = {
     return request<CurrentUser>("/account/me", { method: "GET", auth: true })
   },
 
+  /** Admin only: users whose email contains `email` (case-insensitive), sorted by email. Non-admins get 403 ACCESS_DENIED. */
+  adminSearchUsers(email: string) {
+    return request<CurrentUser[]>(
+      `/admin/users?email=${encodeURIComponent(email)}`,
+      { method: "GET", auth: true }
+    )
+  },
+
   /** Revokes the session on the backend; local tokens are cleared even if the call fails. */
   async logout() {
     try {

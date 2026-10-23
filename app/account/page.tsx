@@ -4,9 +4,11 @@ import {
   LogOutIcon,
   RefreshCwIcon,
   ShieldCheckIcon,
+  ShieldUserIcon,
   TimerIcon,
   UserIcon,
 } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 
@@ -15,7 +17,7 @@ import { FormAlert, toApiError } from "@/components/form-alert"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -28,6 +30,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { formatDate, LOCALES, Row, Rows, STATUS } from "@/components/user-rows"
 import { formatSeconds, useCountdown } from "@/hooks/use-countdown"
 import {
   accessTokenExpiresAt,
@@ -35,31 +38,7 @@ import {
   ApiError,
   hasSession,
   type CurrentUser,
-  type UserStatus,
 } from "@/lib/api"
-
-const STATUS: Record<
-  UserStatus,
-  { label: string; variant: "secondary" | "destructive" | "outline" }
-> = {
-  VERIFICATION_REQUIRE: {
-    label: "Требуется подтверждение",
-    variant: "outline",
-  },
-  ACTIVE: { label: "Активен", variant: "secondary" },
-  BLOCKED: { label: "Заблокирован", variant: "destructive" },
-}
-
-const LOCALES: Record<string, string> = { ru: "Русский", be: "Беларуская" }
-
-const dateFormat = new Intl.DateTimeFormat("ru", {
-  dateStyle: "long",
-  timeStyle: "short",
-})
-
-function formatDate(value: string | null) {
-  return value ? dateFormat.format(new Date(value)) : "—"
-}
 
 function initials(user: CurrentUser) {
   const source = user.name?.trim() || user.email
@@ -68,29 +47,6 @@ function initials(user: CurrentUser) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("")
-}
-
-function Row({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-2.5 text-sm">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 truncate text-right">{children}</dd>
-    </div>
-  )
-}
-
-function Rows({ children }: { children: React.ReactNode }) {
-  return (
-    <dl className="flex flex-col [&>*:not(:last-child)]:border-b">
-      {children}
-    </dl>
-  )
 }
 
 export default function AccountPage() {
@@ -168,6 +124,15 @@ export default function AccountPage() {
         <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Brand />
           <div className="flex items-center gap-1">
+            {user?.roles.includes("ADMIN") && (
+              <Link
+                href="/admin"
+                className={buttonVariants({ variant: "ghost" })}
+              >
+                <ShieldUserIcon data-icon="inline-start" />
+                Админ-панель
+              </Link>
+            )}
             <ThemeToggle />
             <Button variant="ghost" onClick={onLogout} disabled={loggingOut}>
               {loggingOut ? (
